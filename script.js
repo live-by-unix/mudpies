@@ -7,12 +7,13 @@ let slingshot = null;
 let stopwatchInterval = null;
 let stopwatchStartTime = 0;
 let stopwatchElapsed = 0;
-let musicPlaying = true;
+let musicPlaying = false;
 let audioElement = null;
 let splatSound = null;
 let splats = [];
 let animationId = null;
 let windTarget = 0;
+let audioInitialized = false;
 
 // Physics Constants
 const GRAVITY = 0.5;
@@ -81,7 +82,7 @@ function initMenu() {
         window.location.href = 'about.html';
     });
 
-    // Initialize audio
+    // Initialize audio on first user interaction
     initAudio();
 }
 
@@ -89,52 +90,73 @@ function initMenu() {
  * Initialize audio element for background music
  */
 function initAudio() {
-    audioElement = new Audio();
-    audioElement.src = 'assets/music.mp3';
-    audioElement.loop = true;
-    audioElement.volume = 0.5;
-    audioElement.preload = 'auto';
+    if (audioInitialized) return;
 
-    // Fallback: manually loop when audio ends
-    audioElement.addEventListener('ended', () => {
-        if (musicPlaying) {
-            audioElement.currentTime = 0;
-            audioElement.play().catch(e => console.log('Audio loop failed:', e));
-        }
-    });
+    try {
+        audioElement = new Audio();
+        audioElement.src = './assets/music.mp3';
+        audioElement.loop = true;
+        audioElement.volume = 0.5;
+        audioElement.preload = 'auto';
 
-    // Initialize splat sound
-    splatSound = new Audio();
-    splatSound.src = 'assets/splat.wav';
-    splatSound.volume = 0.7;
-    splatSound.preload = 'auto';
+        // Fallback: manually loop when audio ends
+        audioElement.addEventListener('ended', () => {
+            if (musicPlaying) {
+                audioElement.currentTime = 0;
+                audioElement.play().catch(e => console.log('Audio loop failed:', e));
+            }
+        });
 
-    // Don't autoplay - wait for user interaction
-    // Set initial state to muted
-    musicPlaying = false;
-    musicToggle.textContent = '🔇';
-    musicToggleGame.textContent = '🔇';
+        // Initialize splat sound
+        splatSound = new Audio();
+        splatSound.src = './assets/splat.wav';
+        splatSound.volume = 0.7;
+        splatSound.preload = 'auto';
+
+        audioInitialized = true;
+
+        // Set initial state to muted
+        musicPlaying = false;
+        updateMusicToggleButton();
+    } catch (error) {
+        console.error('Failed to initialize audio:', error);
+    }
+}
+
+/**
+ * Update music toggle button appearance
+ */
+function updateMusicToggleButton() {
+    const icon = musicPlaying ? '🎵' : '🔇';
+    musicToggle.textContent = icon;
+    musicToggleGame.textContent = icon;
 }
 
 /**
  * Toggle music on/off
  */
 function toggleMusic() {
+    if (!audioInitialized) {
+        initAudio();
+    }
+
     musicPlaying = !musicPlaying;
 
     if (musicPlaying) {
-        musicToggle.textContent = '🎵';
-        musicToggleGame.textContent = '🎵';
+        updateMusicToggleButton();
         audioElement.currentTime = 0;
-        audioElement.play().catch(e => {
-            console.log('Audio play failed:', e);
-            musicPlaying = false;
-            musicToggle.textContent = '🔇';
-            musicToggleGame.textContent = '🔇';
-        });
+        const playPromise = audioElement.play();
+
+        if (playPromise !== undefined) {
+            playPromise
+                .catch(e => {
+                    console.log('Audio play failed:', e);
+                    musicPlaying = false;
+                    updateMusicToggleButton();
+                });
+        }
     } else {
-        musicToggle.textContent = '🔇';
-        musicToggleGame.textContent = '🔇';
+        updateMusicToggleButton();
         audioElement.pause();
     }
 }
@@ -143,9 +165,20 @@ function toggleMusic() {
  * Play splat sound effect
  */
 function playSplatSound() {
-    if (splatSound) {
+    if (!splatSound) {
+        console.log('Splat sound not initialized');
+        return;
+    }
+
+    try {
         splatSound.currentTime = 0;
-        splatSound.play().catch(e => console.log('Splat sound play failed:', e));
+        const playPromise = splatSound.play();
+
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log('Splat sound play failed:', e));
+        }
+    } catch (error) {
+        console.log('Error playing splat sound:', error);
     }
 }
 
@@ -235,6 +268,11 @@ function showHowToPlay() {
  * Start the game and switch to gameplay mode
  */
 function startGame() {
+    // Ensure audio is initialized on first game start
+    if (!audioInitialized) {
+        initAudio();
+    }
+
     // Reset everything
     isPlaying = true;
     isDragging = false;
