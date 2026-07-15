@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Mud Pies</title>
+    <meta name="description" content="Learn more about the Mud Pies game.">
+    <meta name="theme-color" content="#87CEEB">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Luckiest Guy', cursive;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .about-container {
+            background: rgba(255, 255, 255, 0.95);
+            border: 5px solid #8B4513;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #8B4513;
+            text-shadow: 2px 2px 0 #FFD700;
+            margin-bottom: 20px;
+        }
+
+        .content {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+        }
+
+        .back-button {
+            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+            color: white;
+            border: 4px solid #2E7D32;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-family: 'Luckiest Guy', cursive;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .back-button:active {
+            transform: scale(0.98);
+        }
+
+        .dev-credit {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+            border-top: 2px solid #8B4513;
+            padding-top: 20px;
+        }
+
+        .dev-credit a {
+            color: #FF6B35;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .dev-credit a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .about-container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .content {
+                font-size: 16px;
+            }
+
+            .back-button {
+                padding: 12px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="about-container">
+        <h1>About Mud Pies</h1>
+
+        <div class="content">
+            <p>Mud Pies is a simple game inspired by Google Doodle Action Gnomes and Angry Birds, developed by the GitHub user <strong>live-by-unix</strong> as a fun project to pass time.</p>
+
+            <p><strong>How to Play:</strong></p>
+            <p>Click and drag the mud pie to aim and build up power, then release to throw it as far as possible! The game features dynamic wind conditions that affect your throw, and a real-time stopwatch to track how long your mud pie stays in the air.</p>
+
+            <p><strong>Features:</strong></p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>Physics-based throwing mechanics</li>
+                <li>Dynamic wind effects</li>
+                <li>Score tracking with localStorage</li>
+                <li>Progressive Web App (PWA) support</li>
+                <li>Touch and keyboard controls</li>
+                <li>Offline playability</li>
+            </ul>
+        </div>
+
+        <button class="back-button" onclick="window.history.back()">Back to Game</button>
+
+        <div class="dev-credit">
+            <p>Made with ❤️ by <a href="https://github.com/live-by-unix" target="_blank">@live-by-unix</a></p>
+            <p><a href="https://github.com/live-by-unix/mudpies" target="_blank">View on GitHub</a></p>
+        </div>
+    </div>
+</body>
+</html>
