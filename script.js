@@ -11,6 +11,7 @@ let musicPlaying = true;
 let audioElement = null;
 let splatSound = null;
 let splats = [];
+let animationId = null;
 
 // Physics Constants
 const GRAVITY = 0.5;
@@ -314,8 +315,6 @@ function startGame() {
     stopwatchEl.textContent = '00:00:00.000';
     
     // Start game loop
-   let animationId = null;
-
 function gameLoop() {
     if (!isPlaying) {
         animationId = null;
@@ -327,6 +326,9 @@ function gameLoop() {
 
     animationId = requestAnimationFrame(gameLoop);
 }
+}
+
+
 
 /**
  * Randomize wind conditions
@@ -840,6 +842,10 @@ function checkScore(distance) {
  */
 function returnToMenu() {
     isPlaying = false;
+    if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+}
     
     // Stop game loop
     stopStopwatch();
