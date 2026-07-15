@@ -1,0 +1,408 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Luckiest Guy', cursive;
+    background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+}
+
+/* Home Menu Styles */
+#homeMenu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+.icon-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #FFD700;
+    border: 4px solid #8B4513;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.icon-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.game-title {
+    font-size: 72px;
+    color: #8B4513;
+    text-shadow: 4px 4px 0 #FFD700, 6px 6px 0 rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.score-display {
+    background: rgba(255, 255, 255, 0.9);
+    border: 4px solid #8B4513;
+    border-radius: 20px;
+    padding: 25px 40px;
+    margin-bottom: 40px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+    font-size: 24px;
+}
+
+.score-label {
+    color: #8B4513;
+    margin-right: 20px;
+}
+
+.score-value {
+    color: #FF6B35;
+    font-size: 32px;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.play-button {
+    background: linear-gradient(180deg, #FF6B35 0%, #FF4500 100%);
+    color: white;
+    border: 5px solid #8B0000;
+    border-radius: 30px;
+    padding: 20px 80px;
+    font-size: 48px;
+    font-family: 'Luckiest Guy', cursive;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+}
+
+.play-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.play-button:active {
+    transform: scale(0.98);
+}
+
+.github-button {
+    background: linear-gradient(180deg, #6B4423 0%, #4A2F17 100%);
+    color: white;
+    border: 4px solid #2D1B0E;
+    border-radius: 15px;
+    padding: 15px 40px;
+    font-size: 24px;
+    font-family: 'Luckiest Guy', cursive;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.github-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.reset-button {
+    background: linear-gradient(180deg, #DC143C 0%, #8B0000 100%);
+    color: white;
+    border: 4px solid #5C0000;
+    border-radius: 15px;
+    padding: 12px 30px;
+    font-size: 20px;
+    font-family: 'Luckiest Guy', cursive;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+}
+
+.reset-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.how-to-play-button {
+    background: linear-gradient(180deg, #4169E1 0%, #1E3A8A 100%);
+    color: white;
+    border: 4px solid #0F172A;
+    border-radius: 15px;
+    padding: 12px 30px;
+    font-size: 20px;
+    font-family: 'Luckiest Guy', cursive;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+}
+
+.how-to-play-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Gameplay Styles */
+#gameplay {
+    position: relative;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+}
+
+#musicToggleGame {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.stopwatch-container {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+}
+
+.stopwatch {
+    font-family: 'Courier New', monospace;
+    font-size: 36px;
+    color: #8B4513;
+    background: rgba(255, 255, 255, 0.9);
+    border: 4px solid #8B4513;
+    border-radius: 10px;
+    padding: 10px 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    cursor: crosshair;
+}
+
+.distance-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    border: 5px solid #8B4513;
+    border-radius: 20px;
+    padding: 30px 50px;
+    text-align: center;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.distance-label {
+    display: block;
+    font-size: 28px;
+    color: #8B4513;
+    margin-bottom: 10px;
+}
+
+.distance-value {
+    display: block;
+    font-size: 64px;
+    color: #FF6B35;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.distance-unit {
+    display: block;
+    font-size: 24px;
+    color: #8B4513;
+    margin-top: 5px;
+}
+
+.game-buttons {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 100;
+}
+
+.play-again-button {
+    background: linear-gradient(180deg, #FF6B35 0%, #FF4500 100%);
+    color: white;
+    border: 4px solid #8B0000;
+    border-radius: 20px;
+    padding: 15px 40px;
+    font-size: 24px;
+    font-family: 'Luckiest Guy', cursive;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.play-again-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.return-button {
+    background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+    color: white;
+    border: 4px solid #2E7D32;
+    border-radius: 20px;
+    padding: 15px 40px;
+    font-size: 24px;
+    font-family: 'Luckiest Guy', cursive;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.return-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.attribution {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 1000;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.attribution a {
+    color: #8B4513;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: opacity 0.2s;
+}
+
+.attribution a:hover {
+    opacity: 1;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 48px;
+        margin-bottom: 30px;
+    }
+    
+    .score-display {
+        padding: 20px 30px;
+        margin-bottom: 30px;
+    }
+    
+    .score-item {
+        font-size: 18px;
+    }
+    
+    .score-value {
+        font-size: 24px;
+    }
+    
+    .play-button {
+        padding: 15px 60px;
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+    
+    .how-to-play-button,
+    .reset-button,
+    .github-button {
+        padding: 10px 25px;
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+    
+    .icon-button {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    
+    .stopwatch {
+        font-size: 24px;
+        padding: 8px 20px;
+    }
+    
+    .distance-display {
+        padding: 20px 30px;
+    }
+    
+    .distance-label {
+        font-size: 20px;
+    }
+    
+    .distance-value {
+        font-size: 48px;
+    }
+    
+    .distance-unit {
+        font-size: 18px;
+    }
+    
+    .game-buttons {
+        flex-direction: column;
+        gap: 10px;
+        width: 90%;
+        max-width: 300px;
+    }
+    
+    .play-again-button,
+    .return-button {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 36px;
+    }
+    
+    .score-display {
+        padding: 15px 20px;
+    }
+    
+    .score-item {
+        font-size: 16px;
+    }
+    
+    .play-button {
+        padding: 12px 40px;
+        font-size: 28px;
+    }
+    
+    .distance-value {
+        font-size: 36px;
+    }
+}

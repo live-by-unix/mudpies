@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mud Pies</title>
+    <meta name="description" content="Throw mud pies as far as you can! A fun physics-based throwing game.">
+    <meta name="theme-color" content="#87CEEB">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mud Pies">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/mudpie.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./assets/mudpie.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/mudpie.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./assets/mudpie.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Home Menu -->
+    <div id="homeMenu">
+        <button id="musicToggle" class="icon-button">🎵</button>
+        
+        <h1 class="game-title">Mud Pies</h1>
+        
+        <div class="score-display">
+            <div class="score-item">
+                <span class="score-label">Highest Score Ever:</span>
+                <span id="highestScore" class="score-value">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Last Run's Score:</span>
+                <span id="lastScore" class="score-value">0</span>
+            </div>
+        </div>
+        
+        <button id="playButton" class="play-button">PLAY</button>
+        
+        <button id="howToPlayButton" class="how-to-play-button">How to Play</button>
+        
+        <button id="resetButton" class="reset-button">Reset All Progress</button>
+        
+        <button id="githubButton" class="github-button">Dev's GitHub</button>
+    </div>
+    
+    <!-- Gameplay -->
+    <div id="gameplay" class="hidden">
+        <button id="musicToggleGame" class="icon-button">🎵</button>
+        
+        <div class="stopwatch-container">
+            <span id="stopwatch" class="stopwatch">00:00:00.000</span>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="distanceDisplay" class="distance-display hidden">
+            <span class="distance-label">Distance:</span>
+            <span id="distance" class="distance-value">0</span>
+            <span class="distance-unit">meters</span>
+        </div>
+        
+        <div class="game-buttons hidden">
+            <button id="playAgainButton" class="play-again-button">Play Again</button>
+            <button id="returnButton" class="return-button">Return to Menu</button>
+        </div>
+    </div>
+    
+    <footer class="attribution">
+        <a href="https://www.vecteezy.com/free-vector/angry-birds-background" target="_blank">Angry Birds Background Vectors by Vecteezy</a>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>
