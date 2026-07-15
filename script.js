@@ -236,6 +236,22 @@ function showHowToPlay() {
  * Start the game and switch to gameplay mode
  */
 function startGame() {
+    
+    // Reset everything
+    isPlaying = true;
+    isDragging = false;
+    cameraX = 0;
+    cameraY = 0;
+    splats = [];
+
+    if (stopwatchInterval) {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+    }
+
+    stopwatchElapsed = 0;
+
+    
     isPlaying = true;
     
     // Randomize wind
@@ -293,7 +309,18 @@ function startGame() {
     stopwatchEl.textContent = '00:00:00.000';
     
     // Start game loop
-    gameLoop();
+   let animationId = null;
+
+function gameLoop() {
+    if (!isPlaying) {
+        animationId = null;
+        return;
+    }
+
+    update();
+    draw();
+
+    animationId = requestAnimationFrame(gameLoop);
 }
 
 /**
@@ -819,6 +846,15 @@ function returnToMenu() {
     canvas.removeEventListener('touchend', handleTouchEnd);
     window.removeEventListener('resize', resizeCanvas);
     window.removeEventListener('keydown', handleKeyDown);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    mudPie = null;
+    slingshot = null;
+    cameraX = 0;
+    cameraY = 0;
+    splats = [];
+    isDragging = false;
     
     // Switch to home menu
     gameplay.classList.add('hidden');
