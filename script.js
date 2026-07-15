@@ -12,6 +12,7 @@ let audioElement = null;
 let splatSound = null;
 let splats = [];
 let animationId = null;
+let windTarget = 0;
 
 // Physics Constants
 const GRAVITY = 0.5;
@@ -203,6 +204,7 @@ function resetProgress() {
  * Play again - reset game without returning to menu
  */
 function playAgain() {
+    stopStopwatch();
     // Reset mud pie
     mudPie = {
         x: slingshot.x + slingshot.width / 2,
@@ -315,25 +317,17 @@ function startGame() {
     stopwatchEl.textContent = '00:00:00.000';
     
     // Start game loop
-function gameLoop() {
-    if (!isPlaying) {
-        animationId = null;
-        return;
-    }
-
-    update();
-    draw();
-
-    animationId = requestAnimationFrame(gameLoop);
+if (!animationId) {
+    gameLoop();
 }
 }
 
-
-
+    
 /**
  * Randomize wind conditions
  */
 function randomizeWind() {
+    windTarget = (Math.random() * 0.6 - 0.3);
     windSpeed = Math.random() * 0.3; // 0 to 0.3
     windDirection = Math.random() > 0.5 ? 1 : -1;
 }
@@ -463,6 +457,9 @@ function launchMudPie() {
     if (mudPie.isLaunched) return;
     
     mudPie.isLaunched = true;
+
+    mudPie.vx = 0;
+    mudPie.vy = 0;
     
     // Calculate velocity based on pull distance
     const dx = mudPie.startX - mudPie.x;
@@ -526,12 +523,15 @@ function stopStopwatch() {
  * Main game loop
  */
 function gameLoop() {
-    if (!isPlaying) return;
-    
+    if (!isPlaying) {
+        animationId = null;
+        return;
+    }
+
     update();
     draw();
-    
-    requestAnimationFrame(gameLoop);
+
+    animationId = requestAnimationFrame(gameLoop);
 }
 
 /**
@@ -539,12 +539,25 @@ function gameLoop() {
  */
 function update() {
     if (mudPie.isLaunched && !mudPie.isLanded) {
+        
         // Apply gravity
         mudPie.vy += GRAVITY;
-        
-        // Update position
+
+        // Apply wind
+        mudPie.vx += windSpeed * windDirection;
+
+        // Move
         mudPie.x += mudPie.vx;
         mudPie.y += mudPie.vy;
+        
+        // Update position
+        windSpeed += (Math.abs(windTarget) - windSpeed) * 0.01;
+        windDirection = windTarget >= 0 ? 1 : -1;
+
+if (Math.random() < 0.003) {
+    windTarget = Math.random() * 0.6 - 0.3;
+}
+        
         
         // Update camera to follow mud pie
         updateCamera();
@@ -566,7 +579,7 @@ function update() {
             createSplat(mudPie.x, canvas.height - 50);
             
             // Calculate distance
-            const distance = Math.floor(Math.abs(mudPie.x - mudPie.startX));
+            const distance = Math.floor(Math.abs(mudPie.x - mudPie.startX) / 10);
             
             // Update score display
             distanceEl.textContent = distance;
@@ -613,17 +626,17 @@ function draw() {
     gradient.addColorStop(0, '#87CEEB');
     gradient.addColorStop(1, '#98FB98');
     ctx.fillStyle = gradient;
-    ctx.fillRect(cameraX, 0, canvas.width, canvas.height);
+    ctx.fillRect(cameraX - 100, 0, canvas.width + 200, canvas.height);
     
     // Draw ground (extended)
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(cameraX, canvas.height - 50, canvas.width, 50);
+    ctx.fillRect(cameraX - 100, canvas.height - 50, canvas.width + 200, 50);
     
     // Draw grass (extended)
     ctx.fillStyle = '#228B22';
-    ctx.fillRect(cameraX, canvas.height - 60, canvas.width, 15);
+    ctx.fillRect(cameraX - 100, canvas.height - 60, canvas.width + 200, 15);
     
-    // Draw slingshot
+     // Draw slingshot
     drawSlingshot();
     
     // Draw mud pie
@@ -650,13 +663,24 @@ function draw() {
 function drawUI() {
     // Draw distance marker on screen
     if (mudPie.isLaunched && !mudPie.isLanded) {
-        const currentDistance = Math.floor(Math.abs(mudPie.x - mudPie.startX));
+        const currentDistance = Math.floor(Math.abs(mudPie.x - mudPie.startX) / 10);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(20, 80, 200, 40);
         ctx.fillStyle = '#FFFFFF';
         ctx.font = '20px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(`Distance: ${currentDistance}m`, 30, 105);
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(20, 130, 220, 40);
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        const arrow = windDirection === 1 ? "→" : "←";
+        ctx.fillText(
+              `Wind ${arrow} ${(windSpeed * 100).toFixed(0)}%`,
+            30,
+            155
+       );        
+
     }
 }
 
@@ -753,6 +777,19 @@ function drawTrajectory() {
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(px, py);
+
+    let simWind = windSpeed;
+    let simDir = windDirection;
+
+for (let i = 0; i < 50; i++) {
+    vy += GRAVITY;
+    vx += simWind * simDir;
+
+    px += vx;
+    py += vy;
+
+    ctx.lineTo(px, py);
+}
     
     // Simulate trajectory for preview
     for (let i = 0; i < 50; i++) {
