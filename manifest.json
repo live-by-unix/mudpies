@@ -9,6 +9,7 @@
   "orientation": "landscape",
   "scope": "./",
   "categories": ["games"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./assets/icon-192.png",

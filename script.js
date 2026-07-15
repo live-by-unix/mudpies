@@ -7,7 +7,7 @@ let slingshot = null;
 let stopwatchInterval = null;
 let stopwatchStartTime = 0;
 let stopwatchElapsed = 0;
-let musicPlaying = false;
+let musicPlaying = true;
 let audioElement = null;
 let splatSound = null;
 let splats = [];
@@ -73,7 +73,9 @@ function initMenu() {
     // Set up event listeners
     playButton.addEventListener('click', startGame);
     resetButton.addEventListener('click', resetProgress);
-    howToPlayButton.addEventListener('click', showHowToPlay);
+    howToPlayButton.addEventListener('click', () => {
+        window.location.href = 'how-to-play.html';
+    });
     musicToggle.addEventListener('click', toggleMusic);
     musicToggleGame.addEventListener('click', toggleMusic);
     returnButton.addEventListener('click', returnToMenu);
@@ -115,8 +117,16 @@ function initAudio() {
 
         audioInitialized = true;
 
-        // Set initial state to muted
-        musicPlaying = false;
+        // Start music by default
+        if (musicPlaying) {
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => {
+                console.log('Audio play failed:', e);
+                musicPlaying = false;
+                updateMusicToggleButton();
+            });
+        }
+        
         updateMusicToggleButton();
     } catch (error) {
         console.error('Failed to initialize audio:', error);
@@ -255,13 +265,6 @@ function playAgain() {
     // Reset stopwatch
     stopwatchElapsed = 0;
     stopwatchEl.textContent = '00:00:00.000';
-}
-
-/**
- * Show how to play instructions
- */
-function showHowToPlay() {
-    alert('How to Play:\n\n1. Click and drag the mud pie to aim\n2. Pull back to increase power\n3. Release to throw!\n4. Try to throw as far as possible\n5. Use "Play Again" to keep trying\n\nKeyboard Shortcuts:\nSpace - Play again\nR - Return to menu\nM - Toggle music');
 }
 
 /**
