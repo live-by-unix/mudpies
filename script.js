@@ -36,7 +36,7 @@ const POWER_MULTIPLIER = 0.35;
 
 // DOM Elements
 let homeMenu, gameplay, musicToggle, musicToggleGame;
-let highestScoreEl, lastScoreEl, playButton, githubButton, resetButton, howToPlayButton;
+let highestScoreEl, lastScoreEl, playButton, resetButton, howToPlayButton;
 let stopwatchEl, distanceDisplay, distanceEl, returnButton, playAgainButton, gameCanvas;
 let aboutButton;
 
@@ -52,7 +52,6 @@ function initMenu() {
     highestScoreEl = document.getElementById('highestScore');
     lastScoreEl = document.getElementById('lastScore');
     playButton = document.getElementById('playButton');
-    githubButton = document.getElementById('githubButton');
     resetButton = document.getElementById('resetButton');
     howToPlayButton = document.getElementById('howToPlayButton');
     stopwatchEl = document.getElementById('stopwatch');
@@ -61,7 +60,7 @@ function initMenu() {
     returnButton = document.getElementById('returnButton');
     playAgainButton = document.getElementById('playAgainButton');
     gameCanvas = document.getElementById('gameCanvas');
-    aboutButton = document.getElementById("aboutButton");
+    aboutButton = document.getElementById('aboutButton');
 
     // Load scores from localStorage
     const highestScore = localStorage.getItem('highestScore') || '0';
@@ -72,18 +71,17 @@ function initMenu() {
 
     // Set up event listeners
     playButton.addEventListener('click', startGame);
-    githubButton.addEventListener('click', openGitHub);
     resetButton.addEventListener('click', resetProgress);
     howToPlayButton.addEventListener('click', showHowToPlay);
     musicToggle.addEventListener('click', toggleMusic);
     musicToggleGame.addEventListener('click', toggleMusic);
     returnButton.addEventListener('click', returnToMenu);
     playAgainButton.addEventListener('click', playAgain);
-    aboutButton.addEventListener("click", () => {
-    window.location.href = "about.html";
-});
+    aboutButton.addEventListener('click', () => {
+        window.location.href = 'about.html';
+    });
 
-    // Initialize audio (placeholder)
+    // Initialize audio
     initAudio();
 }
 
@@ -96,7 +94,7 @@ function initAudio() {
     audioElement.loop = true;
     audioElement.volume = 0.5;
     audioElement.preload = 'auto';
-    
+
     // Fallback: manually loop when audio ends
     audioElement.addEventListener('ended', () => {
         if (musicPlaying) {
@@ -104,13 +102,13 @@ function initAudio() {
             audioElement.play().catch(e => console.log('Audio loop failed:', e));
         }
     });
-    
+
     // Initialize splat sound
     splatSound = new Audio();
     splatSound.src = 'assets/splat.wav';
     splatSound.volume = 0.7;
     splatSound.preload = 'auto';
-    
+
     // Don't autoplay - wait for user interaction
     // Set initial state to muted
     musicPlaying = false;
@@ -123,7 +121,7 @@ function initAudio() {
  */
 function toggleMusic() {
     musicPlaying = !musicPlaying;
-    
+
     if (musicPlaying) {
         musicToggle.textContent = '🎵';
         musicToggleGame.textContent = '🎵';
@@ -182,13 +180,6 @@ function drawSplats() {
 }
 
 /**
- * Open GitHub repository in new tab
- */
-function openGitHub() {
-    window.open('https://github.com/live-by-unix/mudpies', '_blank');
-}
-
-/**
  * Reset all progress (clear localStorage)
  */
 function resetProgress() {
@@ -217,17 +208,17 @@ function playAgain() {
         startX: slingshot.x + slingshot.width / 2,
         startY: slingshot.y - slingshot.height / 2
     };
-    
+
     // Reset camera
     cameraX = 0;
-    
+
     // Clear splats
     splats = [];
-    
+
     // Hide distance display and game buttons
     distanceDisplay.classList.add('hidden');
     document.querySelector('.game-buttons').classList.add('hidden');
-    
+
     // Reset stopwatch
     stopwatchElapsed = 0;
     stopwatchEl.textContent = '00:00:00.000';
@@ -237,14 +228,13 @@ function playAgain() {
  * Show how to play instructions
  */
 function showHowToPlay() {
-    alert('How to Play:\n\n1. Click and drag the mud pie to aim\n2. Pull back to increase power\n3. Release to throw!\n4. Try to throw as far as possible\n5. Use "Play Again" to keep trying\n\nKeyboard Controls:\n- Space: Play again after throw\n- R: Return to menu\n- M: Toggle music');
+    alert('How to Play:\n\n1. Click and drag the mud pie to aim\n2. Pull back to increase power\n3. Release to throw!\n4. Try to throw as far as possible\n5. Use "Play Again" to keep trying\n\nKeyboard Shortcuts:\nSpace - Play again\nR - Return to menu\nM - Toggle music');
 }
 
 /**
  * Start the game and switch to gameplay mode
  */
 function startGame() {
-    
     // Reset everything
     isPlaying = true;
     isDragging = false;
@@ -259,28 +249,25 @@ function startGame() {
 
     stopwatchElapsed = 0;
 
-    
-    isPlaying = true;
-    
     // Randomize wind
     randomizeWind();
-    
+
     // Switch to gameplay view
     homeMenu.classList.add('hidden');
     gameplay.classList.remove('hidden');
-    
+
     // Hide distance display and game buttons
     distanceDisplay.classList.add('hidden');
     document.querySelector('.game-buttons').classList.add('hidden');
-    
+
     // Initialize canvas
     canvas = gameCanvas;
     ctx = canvas.getContext('2d');
-    
+
     // Set canvas size
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
-    
+
     // Initialize game objects
     slingshot = {
         x: LAUNCH_X,
@@ -288,7 +275,7 @@ function startGame() {
         width: SLINGSHOT_WIDTH,
         height: SLINGSHOT_HEIGHT
     };
-    
+
     mudPie = {
         x: slingshot.x + slingshot.width / 2,
         y: slingshot.y - slingshot.height / 2,
@@ -300,7 +287,7 @@ function startGame() {
         startX: slingshot.x + slingshot.width / 2,
         startY: slingshot.y - slingshot.height / 2
     };
-    
+
     // Set up canvas event listeners
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMove);
@@ -308,21 +295,20 @@ function startGame() {
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd);
-    
+
     // Set up keyboard controls
     window.addEventListener('keydown', handleKeyDown);
-    
+
     // Reset stopwatch
     stopwatchElapsed = 0;
     stopwatchEl.textContent = '00:00:00.000';
-    
+
     // Start game loop
-if (!animationId) {
-    gameLoop();
-}
+    if (!animationId) {
+        gameLoop();
+    }
 }
 
-    
 /**
  * Randomize wind conditions
  */
@@ -338,7 +324,7 @@ function randomizeWind() {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
+
     if (slingshot) {
         slingshot.y = canvas.height - 100;
     }
@@ -349,17 +335,17 @@ function resizeCanvas() {
  */
 function handleMouseDown(e) {
     if (!isPlaying || mudPie.isLaunched) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
+
     // Check if clicking on mud pie
     const dist = Math.sqrt(
-        Math.pow(mouseX - mudPie.x, 2) + 
+        Math.pow(mouseX - mudPie.x, 2) +
         Math.pow(mouseY - mudPie.y, 2)
     );
-    
+
     if (dist <= mudPie.radius + 20) {
         isDragging = true;
     }
@@ -370,20 +356,20 @@ function handleMouseDown(e) {
  */
 function handleMouseMove(e) {
     if (!isDragging) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
+
     // Calculate pull distance and angle
     const dx = mudPie.startX - mouseX;
     const dy = mudPie.startY - mouseY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Limit pull distance
     const limitedDistance = Math.min(distance, MAX_PULL_DISTANCE);
     const angle = Math.atan2(dy, dx);
-    
+
     // Update mud pie position while dragging
     mudPie.x = mudPie.startX - Math.cos(angle) * limitedDistance;
     mudPie.y = mudPie.startY - Math.sin(angle) * limitedDistance;
@@ -394,7 +380,7 @@ function handleMouseMove(e) {
  */
 function handleMouseUp(e) {
     if (!isDragging) return;
-    
+
     isDragging = false;
     launchMudPie();
 }
@@ -430,8 +416,8 @@ function handleTouchEnd(e) {
  */
 function handleKeyDown(e) {
     if (!isPlaying) return;
-    
-    switch(e.key.toLowerCase()) {
+
+    switch (e.key.toLowerCase()) {
         case ' ':
             // Space: Play again after throw
             if (mudPie.isLanded) {
@@ -455,24 +441,24 @@ function handleKeyDown(e) {
  */
 function launchMudPie() {
     if (mudPie.isLaunched) return;
-    
+
     mudPie.isLaunched = true;
 
     mudPie.vx = 0;
     mudPie.vy = 0;
-    
+
     // Calculate velocity based on pull distance
     const dx = mudPie.startX - mudPie.x;
     const dy = mudPie.startY - mudPie.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Apply power multiplier
     const power = distance * POWER_MULTIPLIER;
     const angle = Math.atan2(dy, dx);
-    
+
     mudPie.vx = Math.cos(angle) * power;
     mudPie.vy = Math.sin(angle) * power;
-    
+
     // Start stopwatch
     startStopwatch();
 }
@@ -482,7 +468,7 @@ function launchMudPie() {
  */
 function startStopwatch() {
     stopwatchStartTime = Date.now();
-    
+
     stopwatchInterval = setInterval(() => {
         updateStopwatch();
     }, 10);
@@ -494,18 +480,18 @@ function startStopwatch() {
 function updateStopwatch() {
     const elapsed = Date.now() - stopwatchStartTime;
     stopwatchElapsed = elapsed;
-    
+
     const hours = Math.floor(elapsed / 3600000);
     const minutes = Math.floor((elapsed % 3600000) / 60000);
     const seconds = Math.floor((elapsed % 60000) / 1000);
     const milliseconds = elapsed % 1000;
-    
-    const formatted = 
+
+    const formatted =
         String(hours).padStart(2, '0') + ':' +
         String(minutes).padStart(2, '0') + ':' +
         String(seconds).padStart(2, '0') + '.' +
         String(milliseconds).padStart(3, '0');
-    
+
     stopwatchEl.textContent = formatted;
 }
 
@@ -539,7 +525,6 @@ function gameLoop() {
  */
 function update() {
     if (mudPie.isLaunched && !mudPie.isLanded) {
-        
         // Apply gravity
         mudPie.vy += GRAVITY;
 
@@ -549,47 +534,47 @@ function update() {
         // Move
         mudPie.x += mudPie.vx;
         mudPie.y += mudPie.vy;
-        
-        // Update position
+
+        // Update wind conditions
         windSpeed += (Math.abs(windTarget) - windSpeed) * 0.01;
         windDirection = windTarget >= 0 ? 1 : -1;
 
-if (Math.random() < 0.003) {
-    windTarget = Math.random() * 0.6 - 0.3;
-}
-        
-        
+        // Randomly change wind target
+        if (Math.random() < 0.003) {
+            windTarget = Math.random() * 0.6 - 0.3;
+        }
+
         // Update camera to follow mud pie
         updateCamera();
-        
+
         // Check if mud pie has landed (hit ground or went off screen)
         const groundY = canvas.height - 50;
-        
-        if (mudPie.y + mudPie.radius >= groundY || 
+
+        if (mudPie.y + mudPie.radius >= groundY ||
             mudPie.x > mudPie.startX + 5000 ||
             mudPie.y > canvas.height + 100) {
-            
+
             mudPie.isLanded = true;
             stopStopwatch();
-            
+
             // Play splat sound
             playSplatSound();
-            
+
             // Create visual splat effect
             createSplat(mudPie.x, canvas.height - 50);
-            
+
             // Calculate distance
             const distance = Math.floor(Math.abs(mudPie.x - mudPie.startX) / 10);
-            
+
             // Update score display
             distanceEl.textContent = distance;
             distanceDisplay.classList.remove('hidden');
             document.querySelector('.game-buttons').classList.remove('hidden');
-            
+
             // Check and update scores
-            checkScore(distance)
-            highestScoreEl.textContent = localStorage.getItem("highestScore");
-            lastScoreEl.textContent = localStorage.getItem("lastScore");
+            checkScore(distance);
+            highestScoreEl.textContent = localStorage.getItem('highestScore');
+            lastScoreEl.textContent = localStorage.getItem('lastScore');
         }
     }
 }
@@ -600,10 +585,10 @@ if (Math.random() < 0.003) {
 function updateCamera() {
     // Target camera position (keep mud pie in center-right of screen)
     const targetCameraX = mudPie.x - canvas.width * 0.6;
-    
+
     // Smooth camera movement
     cameraX += (targetCameraX - cameraX) * 0.1;
-    
+
     // Keep camera from going negative (don't show area before slingshot)
     if (cameraX < 0) cameraX = 0;
 }
@@ -614,45 +599,45 @@ function updateCamera() {
 function draw() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // Save context for camera transform
     ctx.save();
-    
+
     // Apply camera transform
     ctx.translate(-cameraX, cameraY);
-    
+
     // Draw background (extended for camera movement)
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#87CEEB');
     gradient.addColorStop(1, '#98FB98');
     ctx.fillStyle = gradient;
     ctx.fillRect(cameraX - 100, 0, canvas.width + 200, canvas.height);
-    
+
     // Draw ground (extended)
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(cameraX - 100, canvas.height - 50, canvas.width + 200, 50);
-    
+
     // Draw grass (extended)
     ctx.fillStyle = '#228B22';
     ctx.fillRect(cameraX - 100, canvas.height - 60, canvas.width + 200, 15);
-    
-     // Draw slingshot
+
+    // Draw slingshot
     drawSlingshot();
-    
+
     // Draw mud pie
     drawMudPie();
-    
+
     // Draw splat effects
     drawSplats();
-    
+
     // Draw trajectory line when dragging
     if (isDragging) {
         drawTrajectory();
     }
-    
+
     // Restore context
     ctx.restore();
-    
+
     // Draw UI elements (not affected by camera)
     drawUI();
 }
@@ -670,17 +655,16 @@ function drawUI() {
         ctx.font = '20px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(`Distance: ${currentDistance}m`, 30, 105);
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(20, 130, 220, 40);
-        ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        const arrow = windDirection === 1 ? "→" : "←";
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        const arrow = windDirection === 1 ? '→' : '←';
         ctx.fillText(
-              `Wind ${arrow} ${(windSpeed * 100).toFixed(0)}%`,
+            `Wind ${arrow} ${(windSpeed * 100).toFixed(0)}%`,
             30,
             155
-       );        
-
+        );
     }
 }
 
@@ -690,27 +674,27 @@ function drawUI() {
 function drawSlingshot() {
     const x = slingshot.x;
     const y = slingshot.y;
-    
+
     // Draw slingshot base
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(x - 10, y, 20, 30);
-    
+
     // Draw slingshot arms
     ctx.fillStyle = '#A0522D';
     ctx.fillRect(x - 25, y - slingshot.height, 15, slingshot.height);
     ctx.fillRect(x + 10, y - slingshot.height, 15, slingshot.height);
-    
+
     // Draw slingshot band
     ctx.strokeStyle = '#FF6B35';
     ctx.lineWidth = 4;
-    
+
     if (isDragging) {
         // Draw band from arm to mud pie
         ctx.beginPath();
         ctx.moveTo(x - 18, y - slingshot.height + 10);
         ctx.lineTo(mudPie.x, mudPie.y);
         ctx.stroke();
-        
+
         ctx.beginPath();
         ctx.moveTo(x + 18, y - slingshot.height + 10);
         ctx.lineTo(mudPie.x, mudPie.y);
@@ -730,7 +714,7 @@ function drawSlingshot() {
 function drawMudPie() {
     ctx.beginPath();
     ctx.arc(mudPie.x, mudPie.y, mudPie.radius, 0, Math.PI * 2);
-    
+
     // Mud pie color
     const gradient = ctx.createRadialGradient(
         mudPie.x - 5, mudPie.y - 5, 0,
@@ -740,18 +724,18 @@ function drawMudPie() {
     gradient.addColorStop(1, '#5D4037');
     ctx.fillStyle = gradient;
     ctx.fill();
-    
+
     // Mud pie outline
     ctx.strokeStyle = '#3E2723';
     ctx.lineWidth = 3;
     ctx.stroke();
-    
+
     // Add some texture
     ctx.fillStyle = '#6D4C41';
     ctx.beginPath();
     ctx.arc(mudPie.x - 5, mudPie.y - 5, 5, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.beginPath();
     ctx.arc(mudPie.x + 3, mudPie.y + 3, 4, 0, Math.PI * 2);
     ctx.fill();
@@ -766,45 +750,37 @@ function drawTrajectory() {
     const distance = Math.sqrt(dx * dx + dy * dy);
     const power = distance * POWER_MULTIPLIER;
     const angle = Math.atan2(dy, dx);
-    
+
     let vx = Math.cos(angle) * power;
     let vy = Math.sin(angle) * power;
     let px = mudPie.startX;
     let py = mudPie.startY;
-    
+
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(px, py);
 
+    // Simulate trajectory with wind effect
     let simWind = windSpeed;
     let simDir = windDirection;
 
-for (let i = 0; i < 50; i++) {
-    vy += GRAVITY;
-    vx += simWind * simDir;
-
-    px += vx;
-    py += vy;
-
-    ctx.lineTo(px, py);
-}
-    
-    // Simulate trajectory for preview
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
         vy += GRAVITY;
+        vx += simWind * simDir;
+
         px += vx;
         py += vy;
-        
+
         if (py > canvas.height - 50) break;
-        
+
         ctx.lineTo(px, py);
     }
-    
+
     ctx.stroke();
     ctx.setLineDash([]);
-    
+
     // Draw power indicator
     drawPowerIndicator(distance);
 }
@@ -818,21 +794,21 @@ function drawPowerIndicator(pullDistance) {
     const barHeight = 20;
     const barX = slingshot.x + slingshot.width / 2 - barWidth / 2;
     const barY = slingshot.y - slingshot.height - 40;
-    
+
     // Background bar
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fillRect(barX, barY, barWidth, barHeight);
-    
+
     // Power fill - color changes from green to red based on power
     const powerColor = getPowerColor(powerPercent);
     ctx.fillStyle = powerColor;
     ctx.fillRect(barX, barY, barWidth * powerPercent, barHeight);
-    
+
     // Border
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = 2;
     ctx.strokeRect(barX, barY, barWidth, barHeight);
-    
+
     // Label
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '14px Arial';
@@ -864,10 +840,10 @@ function getPowerColor(percent) {
 function checkScore(distance) {
     const highestScore = parseInt(localStorage.getItem('highestScore') || '0');
     const lastScore = parseInt(localStorage.getItem('lastScore') || '0');
-    
+
     // Update last score
     localStorage.setItem('lastScore', distance.toString());
-    
+
     // Update highest score if new record
     if (distance > highestScore) {
         localStorage.setItem('highestScore', distance.toString());
@@ -880,13 +856,13 @@ function checkScore(distance) {
 function returnToMenu() {
     isPlaying = false;
     if (animationId) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-}
-    
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
     // Stop game loop
     stopStopwatch();
-    
+
     // Remove event listeners
     canvas.removeEventListener('mousedown', handleMouseDown);
     canvas.removeEventListener('mousemove', handleMouseMove);
@@ -905,15 +881,15 @@ function returnToMenu() {
     cameraY = 0;
     splats = [];
     isDragging = false;
-    
+
     // Switch to home menu
     gameplay.classList.add('hidden');
     homeMenu.classList.remove('hidden');
-    
+
     // Reload scores
     const highestScore = localStorage.getItem('highestScore') || '0';
     const lastScore = localStorage.getItem('lastScore') || '0';
-    
+
     highestScoreEl.textContent = highestScore;
     lastScoreEl.textContent = lastScore;
 }
