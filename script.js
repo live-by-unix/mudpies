@@ -36,6 +36,7 @@ const POWER_MULTIPLIER = 0.35;
 let homeMenu, gameplay, musicToggle, musicToggleGame;
 let highestScoreEl, lastScoreEl, playButton, githubButton, resetButton, howToPlayButton;
 let stopwatchEl, distanceDisplay, distanceEl, returnButton, playAgainButton, gameCanvas;
+let aboutButton;
 
 /**
  * Initialize the game menu and load scores from localStorage
@@ -58,6 +59,7 @@ function initMenu() {
     returnButton = document.getElementById('returnButton');
     playAgainButton = document.getElementById('playAgainButton');
     gameCanvas = document.getElementById('gameCanvas');
+    aboutButton = document.getElementById("aboutButton");
 
     // Load scores from localStorage
     const highestScore = localStorage.getItem('highestScore') || '0';
@@ -75,6 +77,9 @@ function initMenu() {
     musicToggleGame.addEventListener('click', toggleMusic);
     returnButton.addEventListener('click', returnToMenu);
     playAgainButton.addEventListener('click', playAgain);
+    aboutButton.addEventListener("click", () => {
+    window.location.href = "about.html";
+});
 
     // Initialize audio (placeholder)
     initAudio();
@@ -567,7 +572,9 @@ function update() {
             document.querySelector('.game-buttons').classList.remove('hidden');
             
             // Check and update scores
-            checkScore(distance);
+            checkScore(distance)
+            highestScoreEl.textContent = localStorage.getItem("highestScore");
+            lastScoreEl.textContent = localStorage.getItem("lastScore");
         }
     }
 }
