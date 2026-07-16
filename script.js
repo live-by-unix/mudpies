@@ -14,6 +14,7 @@ let splats = [];
 let animationId = null;
 let windTarget = 0;
 let audioInitialized = false;
+let gameStarting = false;
 
 // Physics Constants
 const GRAVITY = 0.5;
@@ -70,15 +71,17 @@ function initMenu() {
     highestScoreEl.textContent = highestScore;
     lastScoreEl.textContent = lastScore;
 
+playButton.addEventListener('click', () => {
+    if (gameStarting || isPlaying) return;
 
-    if (playButton) {
-    playButton.addEventListener('click', () => {
-        console.log("PLAY CLICKED");
-        startGame();
-    });
-} else {
-    console.error("PLAY BUTTON NOT FOUND");
-}
+    console.log("PLAY CLICKED");
+
+    gameStarting = true;
+    playButton.disabled = true;
+
+    startGame();
+
+  
     
     resetButton.addEventListener('click', resetProgress);
     howToPlayButton.addEventListener('click', () => {
@@ -636,11 +639,14 @@ function update() {
  * Update camera to follow mud pie
  */
 function updateCamera() {
-    if (!mudPie) return;
+    if (!mudPie || !mudPie.isLaunched) {
+        cameraX = 0;
+        return;
+    }
 
-    const targetCameraX = mudPie.x - canvas.width * 0.55;
+    const targetCameraX = mudPie.x - canvas.width / 2;
 
-    cameraX += (targetCameraX - cameraX) * 0.08;
+    cameraX += (targetCameraX - cameraX) * 0.12;
 
     if (cameraX < 0) {
         cameraX = 0;
@@ -946,6 +952,9 @@ function returnToMenu() {
 
     highestScoreEl.textContent = highestScore;
     lastScoreEl.textContent = lastScore;
+
+    gameStarting = false;
+    playButton.disabled = false;
 }
 
 // Register service worker for PWA support
