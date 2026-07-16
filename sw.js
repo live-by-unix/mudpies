@@ -1,4 +1,4 @@
-const CACHE_NAME = "mud-pies-v3";
+const CACHE_NAME = "mud-pies-v4";
 
 const ASSETS_TO_CACHE = [
     "/",
@@ -22,13 +22,12 @@ const ASSETS_TO_CACHE = [
     "/assets/screenshot-1920.png"
 ];
 
-// Install: cache app files
+
+// Install
 self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
+            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
             .catch((error) => {
                 console.error("Cache install failed:", error);
             })
@@ -38,62 +37,59 @@ self.addEventListener("install", (event) => {
 });
 
 
-// Activate: remove old caches
+// Activate
 self.addEventListener("activate", (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => {
-            return self.clients.claim();
-        })
+        caches.keys()
+            .then((cacheNames) => {
+                return Promise.all(
+                    cacheNames.map((cacheName) => {
+                        if (cacheName !== CACHE_NAME) {
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+            .then(() => self.clients.claim())
     );
 });
 
 
-// Fetch: cache first, network fallback
+// Fetch
 self.addEventListener("fetch", (event) => {
     if (event.request.method !== "GET") {
         return;
     }
 
     event.respondWith(
-        caches.match(event.request)
-            .then((cachedResponse) => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
+        fetch(event.request, {
+            redirect: "follow"
+        })
+        .then((response) => {
 
-                return fetch(event.request)
-                    .then((networkResponse) => {
+            // Don't cache redirects/errors
+            if (
+                !response ||
+                response.status !== 200 ||
+                response.type === "opaqueredirect"
+            ) {
+                return response;
+            }
 
-                        // Only cache valid responses
-                        if (
-                            !networkResponse ||
-                            networkResponse.status !== 200 ||
-                            networkResponse.type === "error"
-                        ) {
-                            return networkResponse;
-                        }
+            const clone = response.clone();
 
-                        const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME)
+                .then((cache) => {
+                    cache.put(event.request, clone);
+                });
 
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
-                                cache.put(event.request, responseClone);
-                            });
-
-                        return networkResponse;
-                    });
-            })
-            .catch(() => {
-                // Offline fallback
-                return caches.match("/index.html");
-            })
+            return response;
+        })
+        .catch(() => {
+            return caches.match(event.request)
+                .then((cached) => {
+                    return cached || caches.match("/index.html");
+                });
+        })
     );
 });
