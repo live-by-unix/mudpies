@@ -71,7 +71,10 @@ function initMenu() {
     lastScoreEl.textContent = lastScore;
 
     // Set up event listeners
-    playButton.addEventListener('click', startGame);
+    playButton.addEventListener('click', () => {
+    console.log("PLAY CLICKED");
+    startGame();
+});
     resetButton.addEventListener('click', resetProgress);
     howToPlayButton.addEventListener('click', () => {
         window.location.href = 'how-to-play.html';
@@ -271,9 +274,6 @@ function playAgain() {
  * Start the game and switch to gameplay mode
  */
 function startGame() {
-    canvas.onmousedown = null;
-    canvas.onmousemove = null;
-    canvas.onmouseup = null;
     // Ensure audio is initialized on first game start
     if (!audioInitialized) {
         initAudio();
