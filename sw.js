@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mud-pies-v1';
+const CACHE_NAME = 'mud-pies-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
