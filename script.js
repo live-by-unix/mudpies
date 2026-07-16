@@ -350,9 +350,8 @@ function startGame() {
 // Always restart game loop
     if (!animationId) {
          gameLoop();
+         animationId = requestAnimationFrame(gameLoop);
     }    
-
-animationId = requestAnimationFrame(gameLoop);
 
 /**
  * Randomize wind conditions
