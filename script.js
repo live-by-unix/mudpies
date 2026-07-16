@@ -351,9 +351,12 @@ function startGame() {
     stopwatchEl.textContent = '00:00:00.000';
 
 // Start game loop
-if (!animationId) {
-    animationId = requestAnimationFrame(gameLoop);
+if (animationId) {
+    cancelAnimationFrame(animationId);
 }
+
+animationId = requestAnimationFrame(gameLoop);
+console.log("GAME LOOP STARTED");
 
     }
 
@@ -557,6 +560,7 @@ function stopStopwatch() {
  * Main game loop
  */
 function gameLoop() {
+     console.log("FRAME RUNNING");
     if (!isPlaying) {
         animationId = null;
         return;
