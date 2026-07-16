@@ -80,6 +80,8 @@ playButton.addEventListener('click', () => {
     playButton.disabled = true;
 
     startGame();
+    
+    });
 
   
     
