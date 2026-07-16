@@ -70,11 +70,16 @@ function initMenu() {
     highestScoreEl.textContent = highestScore;
     lastScoreEl.textContent = lastScore;
 
-    // Set up event listeners
+
+    if (playButton) {
     playButton.addEventListener('click', () => {
-    console.log("PLAY CLICKED");
-    startGame();
-});
+        console.log("PLAY CLICKED");
+        startGame();
+    });
+} else {
+    console.error("PLAY BUTTON NOT FOUND");
+}
+    
     resetButton.addEventListener('click', resetProgress);
     howToPlayButton.addEventListener('click', () => {
         window.location.href = 'how-to-play.html';
@@ -87,8 +92,6 @@ function initMenu() {
         window.location.href = 'about.html';
     });
 
-    // Initialize audio on first user interaction
-    initAudio();
 }
 
 /**
@@ -347,11 +350,10 @@ function startGame() {
     stopwatchElapsed = 0;
     stopwatchEl.textContent = '00:00:00.000';
 
-// Always restart game loop
-    if (!animationId) {
-         gameLoop();
-         animationId = requestAnimationFrame(gameLoop);
-    }    
+// Start game loop
+if (!animationId) {
+    animationId = requestAnimationFrame(gameLoop);
+}
 
     }
 
