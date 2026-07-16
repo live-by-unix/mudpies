@@ -271,6 +271,9 @@ function playAgain() {
  * Start the game and switch to gameplay mode
  */
 function startGame() {
+    canvas.onmousedown = null;
+    canvas.onmousemove = null;
+    canvas.onmouseup = null;
     // Ensure audio is initialized on first game start
     if (!audioInitialized) {
         initAudio();
@@ -344,11 +347,12 @@ function startGame() {
     stopwatchElapsed = 0;
     stopwatchEl.textContent = '00:00:00.000';
 
-    // Start game loop
+// Always restart game loop
     if (!animationId) {
-        gameLoop();
-    }
-}
+         gameLoop();
+    }    
+
+animationId = requestAnimationFrame(gameLoop);
 
 /**
  * Randomize wind conditions
@@ -564,7 +568,13 @@ function gameLoop() {
 /**
  * Update game physics
  */
+    
 function update() {
+    // Always update camera if the mud pie exists
+    if (mudPie) {
+        updateCamera();
+    }
+
     if (mudPie.isLaunched && !mudPie.isLanded) {
         // Apply gravity
         mudPie.vy += GRAVITY;
@@ -585,37 +595,32 @@ function update() {
             windTarget = Math.random() * 0.6 - 0.3;
         }
 
-        // Update camera to follow mud pie
-        updateCamera();
-
-        // Check if mud pie has landed (hit ground or went off screen)
+        // Check if mud pie has landed
         const groundY = canvas.height - 50;
 
-        if (mudPie.y + mudPie.radius >= groundY ||
+        if (
+            mudPie.y + mudPie.radius >= groundY ||
             mudPie.x > mudPie.startX + 5000 ||
-            mudPie.y > canvas.height + 100) {
-
+            mudPie.y > canvas.height + 100
+        ) {
             mudPie.isLanded = true;
             stopStopwatch();
 
-            // Play splat sound
             playSplatSound();
 
-            // Create visual splat effect
             createSplat(mudPie.x, canvas.height - 50);
 
-            // Calculate distance
-            const distance = Math.floor(Math.abs(mudPie.x - mudPie.startX) / 10);
+            const distance = Math.floor(
+                Math.abs(mudPie.x - mudPie.startX) / 10
+            );
 
-            // Update score display
             distanceEl.textContent = distance;
             distanceDisplay.classList.remove('hidden');
             document.querySelector('.game-buttons').classList.remove('hidden');
 
-            // Check and update scores
             checkScore(distance);
             highestScoreEl.textContent = localStorage.getItem('highestScore');
-            lastScoreEl.textContent = localStorage.getItem('lastScore');
+            lastScoreEl.textContent = localStorage.getItem('highestScore');
         }
     }
 }
@@ -624,14 +629,15 @@ function update() {
  * Update camera to follow mud pie
  */
 function updateCamera() {
-    // Target camera position (keep mud pie in center-right of screen)
-    const targetCameraX = mudPie.x - canvas.width * 0.6;
+    if (!mudPie) return;
 
-    // Smooth camera movement
-    cameraX += (targetCameraX - cameraX) * 0.1;
+    const targetCameraX = mudPie.x - canvas.width * 0.55;
 
-    // Keep camera from going negative (don't show area before slingshot)
-    if (cameraX < 0) cameraX = 0;
+    cameraX += (targetCameraX - cameraX) * 0.08;
+
+    if (cameraX < 0) {
+        cameraX = 0;
+    }
 }
 
 /**
