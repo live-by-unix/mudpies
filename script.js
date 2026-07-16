@@ -353,6 +353,8 @@ function startGame() {
          animationId = requestAnimationFrame(gameLoop);
     }    
 
+    }
+
 /**
  * Randomize wind conditions
  */
