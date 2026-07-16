@@ -1,4 +1,4 @@
-const CACHE_NAME = "mud-pies-v4";
+const CACHE_NAME = "mud-pies-v5";
 
 const ASSETS_TO_CACHE = [
     "/",
@@ -22,74 +22,91 @@ const ASSETS_TO_CACHE = [
     "/assets/screenshot-1920.png"
 ];
 
-
-// Install
 self.addEventListener("install", (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
-            .catch((error) => {
-                console.error("Cache install failed:", error);
-            })
-    );
+        (async () => {
+            const cache = await caches.open(CACHE_NAME);
 
-    self.skipWaiting();
+            await Promise.allSettled(
+                ASSETS_TO_CACHE.map(async (asset) => {
+                    try {
+                        await cache.add(asset);
+                    } catch (e) {
+                        console.warn("Failed to cache:", asset, e);
+                    }
+                })
+            );
+
+            await self.skipWaiting();
+        })()
+    );
 });
 
-
-// Activate
 self.addEventListener("activate", (event) => {
     event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        if (cacheName !== CACHE_NAME) {
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            })
-            .then(() => self.clients.claim())
+        (async () => {
+            const keys = await caches.keys();
+
+            await Promise.all(
+                keys
+                    .filter((key) => key !== CACHE_NAME)
+                    .map((key) => caches.delete(key))
+            );
+
+            await self.clients.claim();
+        })()
     );
 });
 
-
-// Fetch
 self.addEventListener("fetch", (event) => {
-    if (event.request.method !== "GET") {
+    if (event.request.method !== "GET") return;
+
+    const url = new URL(event.request.url);
+
+    // Ignore cross-origin requests.
+    if (url.origin !== self.location.origin) return;
+
+    // Let the browser handle ALL page navigation.
+    if (event.request.mode === "navigate") return;
+
+    // Only cache static assets.
+    const destination = event.request.destination;
+
+    if (
+        ![
+            "script",
+            "style",
+            "image",
+            "font",
+            "audio",
+            "manifest"
+        ].includes(destination)
+    ) {
         return;
     }
 
     event.respondWith(
-        fetch(event.request, {
-            redirect: "follow"
-        })
-        .then((response) => {
+        (async () => {
+            const cache = await caches.open(CACHE_NAME);
 
-            // Don't cache redirects/errors
-            if (
-                !response ||
-                response.status !== 200 ||
-                response.type === "opaqueredirect"
-            ) {
+            const cached = await cache.match(event.request);
+            if (cached) return cached;
+
+            try {
+                const response = await fetch(event.request);
+
+                if (
+                    response.ok &&
+                    !response.redirected &&
+                    response.type !== "opaqueredirect"
+                ) {
+                    cache.put(event.request, response.clone());
+                }
+
                 return response;
+            } catch {
+                return cached || Response.error();
             }
-
-            const clone = response.clone();
-
-            caches.open(CACHE_NAME)
-                .then((cache) => {
-                    cache.put(event.request, clone);
-                });
-
-            return response;
-        })
-        .catch(() => {
-            return caches.match(event.request)
-                .then((cached) => {
-                    return cached || caches.match("/index.html");
-                });
-        })
+        })()
     );
 });
