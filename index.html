@@ -36,6 +36,10 @@
                 <span class="score-label">Last Run's Score:</span>
                 <span id="lastScore" class="score-value">0</span>
             </div>
+            <div class="score-item">
+                <span class="score-label">Achievement Points:</span>
+                <span id="achievementPoints" class="score-value">0</span>
+            </div>
         </div>
 
         <button id="playButton" class="play-button">PLAY</button>
@@ -44,7 +48,25 @@
 
         <button id="aboutButton" class="about-button">About</button>
 
+        <button id="achievementsButton" class="achievements-button">Achievements</button>
+
         <button id="resetButton" class="reset-button">Reset All Progress</button>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div id="achievementsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Achievements</h2>
+                <button id="closeAchievements" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="achievement-stats">
+                    <span id="unlockedCount">0</span> / <span id="totalAchievements">0</span> Unlocked
+                </div>
+                <div id="achievementsList" class="achievements-list"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Gameplay -->

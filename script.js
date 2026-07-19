@@ -15,6 +15,8 @@ let animationId = null;
 let windTarget = 0;
 let audioInitialized = false;
 let gameStarting = false;
+let achievementPoints = 0;
+let unlockedAchievements = [];
 
 // Physics Constants
 const GRAVITY = 0.5;
@@ -40,7 +42,8 @@ const POWER_MULTIPLIER = 0.35;
 let homeMenu, gameplay, musicToggle, musicToggleGame;
 let highestScoreEl, lastScoreEl, playButton, resetButton, howToPlayButton;
 let stopwatchEl, distanceDisplay, distanceEl, returnButton, playAgainButton, gameCanvas;
-let aboutButton;
+let aboutButton, achievementPointsEl, achievementsButton, achievementsModal, closeAchievements;
+let achievementsList, unlockedCountEl, totalAchievementsEl;
 
 /**
  * Initialize the game menu and load scores from localStorage
@@ -63,24 +66,45 @@ function initMenu() {
     playAgainButton = document.getElementById('playAgainButton');
     gameCanvas = document.getElementById('gameCanvas');
     aboutButton = document.getElementById('aboutButton');
+    achievementPointsEl = document.getElementById('achievementPoints');
+    achievementsButton = document.getElementById('achievementsButton');
+    achievementsModal = document.getElementById('achievementsModal');
+    closeAchievements = document.getElementById('closeAchievements');
+    achievementsList = document.getElementById('achievementsList');
+    unlockedCountEl = document.getElementById('unlockedCount');
+    totalAchievementsEl = document.getElementById('totalAchievements');
 
     // Load scores from localStorage
     const highestScore = localStorage.getItem('highestScore') || '0';
     const lastScore = localStorage.getItem('lastScore') || '0';
+    achievementPoints = parseInt(localStorage.getItem('achievementPoints') || '0');
+    unlockedAchievements = JSON.parse(localStorage.getItem('unlockedAchievements') || '[]');
+    totalThrows = parseInt(localStorage.getItem('totalThrows') || '0');
 
     highestScoreEl.textContent = highestScore;
     lastScoreEl.textContent = lastScore;
+    achievementPointsEl.textContent = achievementPoints;
+    
+    // Mark achievements as unlocked based on saved data
+    achievements.forEach(achievement => {
+        achievement.unlocked = unlockedAchievements.includes(achievement.id);
+    });
 
 playButton.addEventListener('click', () => {
     if (gameStarting || isPlaying) return;
 
     console.log("PLAY CLICKED");
 
+    // Initialize audio on first user interaction
+    if (!audioInitialized) {
+        initAudio();
+    }
+
     gameStarting = true;
     playButton.disabled = true;
 
     startGame();
-    
+
     });
 
   
@@ -96,6 +120,8 @@ playButton.addEventListener('click', () => {
     aboutButton.addEventListener('click', () => {
         window.location.href = 'about.html';
     });
+    achievementsButton.addEventListener('click', showAchievements);
+    closeAchievements.addEventListener('click', hideAchievements);
 
 }
 
@@ -240,8 +266,19 @@ function resetProgress() {
     if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
         localStorage.removeItem('highestScore');
         localStorage.removeItem('lastScore');
+        localStorage.removeItem('achievementPoints');
+        localStorage.removeItem('unlockedAchievements');
+        localStorage.removeItem('totalThrows');
         highestScoreEl.textContent = '0';
         lastScoreEl.textContent = '0';
+        achievementPoints = 0;
+        unlockedAchievements = [];
+        totalThrows = 0;
+        currentStreak = 0;
+        achievementPointsEl.textContent = '0';
+        
+        // Reset achievements
+        achievements.forEach(a => a.unlocked = false);
     }
 }
 
@@ -514,6 +551,9 @@ function launchMudPie() {
 
     mudPie.vx = Math.cos(angle) * power;
     mudPie.vy = Math.sin(angle) * power;
+    
+    // Store power for achievement checking
+    lastThrowPower = distance / MAX_PULL_DISTANCE;
 
     // Start stopwatch
     startStopwatch();
@@ -630,9 +670,10 @@ function update() {
             distanceDisplay.classList.remove('hidden');
             document.querySelector('.game-buttons').classList.remove('hidden');
 
-            checkScore(distance);
+            checkScore(distance, stopwatchElapsed, windSpeed, lastThrowPower);
             highestScoreEl.textContent = localStorage.getItem('highestScore');
-            lastScoreEl.textContent = localStorage.getItem('highestScore');
+            lastScoreEl.textContent = localStorage.getItem('lastScore');
+            achievementPointsEl.textContent = achievementPoints;
         }
     }
 }
@@ -643,6 +684,7 @@ function update() {
 function updateCamera() {
     if (!mudPie || !mudPie.isLaunched) {
         cameraX = 0;
+        cameraY = 0;
         return;
     }
 
@@ -653,6 +695,8 @@ function updateCamera() {
     if (cameraX < 0) {
         cameraX = 0;
     }
+
+    cameraY = 0;
 }
 
 /**
@@ -711,23 +755,54 @@ function drawUI() {
     // Draw distance marker on screen
     if (mudPie.isLaunched && !mudPie.isLanded) {
         const currentDistance = Math.floor(Math.abs(mudPie.x - mudPie.startX) / 10);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(20, 80, 200, 40);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '20px Arial';
+        
+        // Styled distance box
+        ctx.fillStyle = 'rgba(139, 69, 19, 0.9)';
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 3;
+        roundRect(ctx, 15, 75, 220, 50, 10);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 24px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText(`Distance: ${currentDistance}m`, 30, 105);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(20, 130, 220, 40);
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
+        ctx.fillText(`Distance: ${currentDistance}m`, 30, 108);
+        
+        // Styled wind box
+        ctx.fillStyle = 'rgba(34, 139, 34, 0.9)';
+        ctx.strokeStyle = '#228B22';
+        ctx.lineWidth = 3;
+        roundRect(ctx, 15, 135, 240, 50, 10);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 24px Arial';
         const arrow = windDirection === 1 ? '→' : '←';
         ctx.fillText(
             `Wind ${arrow} ${(windSpeed * 100).toFixed(0)}%`,
             30,
-            155
+            168
         );
     }
+}
+
+/**
+ * Draw rounded rectangle helper function
+ */
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
 }
 
 /**
@@ -897,9 +972,644 @@ function getPowerColor(percent) {
 }
 
 /**
+ * Generate achievements with varied, harder requirements
+ */
+function generateAchievements() {
+    const achievements = [];
+    
+    // Distance achievements (much harder scaling - more milestones)
+    const distanceMilestones = [25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 750, 900, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7500, 9000, 10000, 12500, 15000, 20000, 30000, 40000, 50000, 75000, 100000];
+    distanceMilestones.forEach((distance, index) => {
+        achievements.push({
+            id: `distance_${distance}`,
+            name: `Distance Master ${index + 1}`,
+            description: `Throw ${distance} meters`,
+            requiredDistance: distance,
+            unlocked: false,
+            category: 'distance'
+        });
+    });
+    
+    // Total throws achievements (much harder - more milestones)
+    const throwMilestones = [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 7500, 10000, 15000, 25000, 50000];
+    throwMilestones.forEach(throws => {
+        achievements.push({
+            id: `throws_${throws}`,
+            name: `Persistent Thrower`,
+            description: `Complete ${throws} throws`,
+            requiredThrows: throws,
+            unlocked: false,
+            category: 'throws'
+        });
+    });
+    
+    // Wind achievements (throw in specific wind conditions - harder - more variety)
+    achievements.push({
+        id: 'wind_master',
+        name: 'Wind Master',
+        description: 'Throw 1000m with 25%+ wind',
+        requiredDistance: 1000,
+        requiredWind: 25,
+        unlocked: false,
+        category: 'wind'
+    });
+    
+    achievements.push({
+        id: 'calm_thrower',
+        name: 'Calm Thrower',
+        description: 'Throw 500m with <3% wind',
+        requiredDistance: 500,
+        requiredLowWind: 3,
+        unlocked: false,
+        category: 'wind'
+    });
+    
+    achievements.push({
+        id: 'wind_surfer',
+        name: 'Wind Surfer',
+        description: 'Throw 2000m with 20%+ wind against you',
+        requiredDistance: 2000,
+        requiredWind: 20,
+        requiredAgainstWind: true,
+        unlocked: false,
+        category: 'wind'
+    });
+    
+    achievements.push({
+        id: 'breezy',
+        name: 'Breezy Day',
+        description: 'Throw 300m with 15%+ wind',
+        requiredDistance: 300,
+        requiredWind: 15,
+        unlocked: false,
+        category: 'wind'
+    });
+    
+    achievements.push({
+        id: 'storm_chaser',
+        name: 'Storm Chaser',
+        description: 'Throw 5000m with 30%+ wind',
+        requiredDistance: 5000,
+        requiredWind: 30,
+        unlocked: false,
+        category: 'wind'
+    });
+    
+    achievements.push({
+        id: 'still_air',
+        name: 'Still Air',
+        description: 'Throw 200m with <1% wind',
+        requiredDistance: 200,
+        requiredLowWind: 1,
+        unlocked: false,
+        category: 'wind'
+    });
+    
+    // Time achievements (fast throws - much harder - more variety)
+    achievements.push({
+        id: 'speed_demon',
+        name: 'Speed Demon',
+        description: 'Throw 300m in under 2 seconds',
+        requiredDistance: 300,
+        maxTime: 2000,
+        unlocked: false,
+        category: 'time'
+    });
+    
+    achievements.push({
+        id: 'marathon',
+        name: 'Marathon',
+        description: 'Throw 1500m in under 8 seconds',
+        requiredDistance: 1500,
+        maxTime: 8000,
+        unlocked: false,
+        category: 'time'
+    });
+    
+    achievements.push({
+        id: 'lightning',
+        name: 'Lightning Fast',
+        description: 'Throw 500m in under 1 second',
+        requiredDistance: 500,
+        maxTime: 1000,
+        unlocked: false,
+        category: 'time'
+    });
+    
+    achievements.push({
+        id: 'quick_start',
+        name: 'Quick Start',
+        description: 'Throw 100m in under 1.5 seconds',
+        requiredDistance: 100,
+        maxTime: 1500,
+        unlocked: false,
+        category: 'time'
+    });
+    
+    achievements.push({
+        id: 'endurance',
+        name: 'Endurance',
+        description: 'Throw 3000m in under 15 seconds',
+        requiredDistance: 3000,
+        maxTime: 15000,
+        unlocked: false,
+        category: 'time'
+    });
+    
+    achievements.push({
+        id: 'flash',
+        name: 'Flash',
+        description: 'Throw 200m in under 0.8 seconds',
+        requiredDistance: 200,
+        maxTime: 800,
+        unlocked: false,
+        category: 'time'
+    });
+    
+    // Consistency achievements (much harder - more variety)
+    achievements.push({
+        id: 'consistent_100',
+        name: 'Consistent 100',
+        description: 'Throw 100m+ five times in a row',
+        requiredDistance: 100,
+        requiredStreak: 5,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    achievements.push({
+        id: 'consistent_200',
+        name: 'Consistent 200',
+        description: 'Throw 200m+ five times in a row',
+        requiredDistance: 200,
+        requiredStreak: 5,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    achievements.push({
+        id: 'consistent_500',
+        name: 'Consistent 500',
+        description: 'Throw 500m+ three times in a row',
+        requiredDistance: 500,
+        requiredStreak: 3,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    achievements.push({
+        id: 'consistent_1000',
+        name: 'Consistent 1000',
+        description: 'Throw 1000m+ three times in a row',
+        requiredDistance: 1000,
+        requiredStreak: 3,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    achievements.push({
+        id: 'consistent_2000',
+        name: 'Consistent 2000',
+        description: 'Throw 2000m+ two times in a row',
+        requiredDistance: 2000,
+        requiredStreak: 2,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    achievements.push({
+        id: 'consistent_5000',
+        name: 'Consistent 5000',
+        description: 'Throw 5000m+ two times in a row',
+        requiredDistance: 5000,
+        requiredStreak: 2,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    achievements.push({
+        id: 'consistent_10000',
+        name: 'Consistent 10000',
+        description: 'Throw 10000m+ two times in a row',
+        requiredDistance: 10000,
+        requiredStreak: 2,
+        unlocked: false,
+        category: 'consistency'
+    });
+    
+    // Perfect power achievements (harder - more variety)
+    achievements.push({
+        id: 'perfect_power',
+        name: 'Perfect Power',
+        description: 'Throw 1500m+ with max power',
+        requiredDistance: 1500,
+        requiredPower: 0.98,
+        unlocked: false,
+        category: 'power'
+    });
+    
+    achievements.push({
+        id: 'precision',
+        name: 'Precision Master',
+        description: 'Throw 3000m with 95%+ power',
+        requiredDistance: 3000,
+        requiredPower: 0.95,
+        unlocked: false,
+        category: 'power'
+    });
+    
+    achievements.push({
+        id: 'strong_arm',
+        name: 'Strong Arm',
+        description: 'Throw 500m with 90%+ power',
+        requiredDistance: 500,
+        requiredPower: 0.90,
+        unlocked: false,
+        category: 'power'
+    });
+    
+    achievements.push({
+        id: 'power_hitter',
+        name: 'Power Hitter',
+        description: 'Throw 2000m with 92%+ power',
+        requiredDistance: 2000,
+        requiredPower: 0.92,
+        unlocked: false,
+        category: 'power'
+    });
+    
+    achievements.push({
+        id: 'max_force',
+        name: 'Max Force',
+        description: 'Throw 5000m with 97%+ power',
+        requiredDistance: 5000,
+        requiredPower: 0.97,
+        unlocked: false,
+        category: 'power'
+    });
+    
+    // Milestone achievements (harder - more variety)
+    achievements.push({
+        id: 'first_throw',
+        name: 'First Steps',
+        description: 'Complete your first throw',
+        requiredDistance: 1,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'getting_started',
+        name: 'Getting Started',
+        description: 'Throw 25 meters',
+        requiredDistance: 25,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'half_century',
+        name: 'Half Century',
+        description: 'Throw 50 meters',
+        requiredDistance: 50,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'century',
+        name: 'Century',
+        description: 'Throw 100 meters',
+        requiredDistance: 100,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'quarter_k',
+        name: 'Quarter K',
+        description: 'Throw 250 meters',
+        requiredDistance: 250,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'half_k',
+        name: 'Half K',
+        description: 'Throw 500 meters',
+        requiredDistance: 500,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'millennium',
+        name: 'Millennium',
+        description: 'Throw 1000 meters',
+        requiredDistance: 1000,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'double_k',
+        name: 'Double K',
+        description: 'Throw 2000 meters',
+        requiredDistance: 2000,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'five_k',
+        name: 'Five K',
+        description: 'Throw 5000 meters',
+        requiredDistance: 5000,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'ten_k',
+        name: 'Ten K',
+        description: 'Throw 10000 meters',
+        requiredDistance: 10000,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    achievements.push({
+        id: 'myriad',
+        name: 'Myriad',
+        description: 'Throw 10000 meters',
+        requiredDistance: 10000,
+        unlocked: false,
+        category: 'milestone'
+    });
+    
+    // Extreme challenges
+    achievements.push({
+        id: 'extreme_distance',
+        name: 'Extreme Distance',
+        description: 'Throw 50000 meters',
+        requiredDistance: 50000,
+        unlocked: false,
+        category: 'extreme'
+    });
+    
+    achievements.push({
+        id: 'legendary',
+        name: 'Legendary',
+        description: 'Throw 100000 meters',
+        requiredDistance: 100000,
+        unlocked: false,
+        category: 'extreme'
+    });
+    
+    achievements.push({
+        id: 'godlike',
+        name: 'Godlike',
+        description: 'Throw 250000 meters',
+        requiredDistance: 250000,
+        unlocked: false,
+        category: 'extreme'
+    });
+    
+    // Score-based achievements
+    achievements.push({
+        id: 'score_100',
+        name: 'Century Score',
+        description: 'Reach 100 total achievement points',
+        requiredPoints: 100,
+        unlocked: false,
+        category: 'score'
+    });
+    
+    achievements.push({
+        id: 'score_250',
+        name: 'Quarter Millennium',
+        description: 'Reach 250 total achievement points',
+        requiredPoints: 250,
+        unlocked: false,
+        category: 'score'
+    });
+    
+    achievements.push({
+        id: 'score_500',
+        name: 'Half Millennium',
+        description: 'Reach 500 total achievement points',
+        requiredPoints: 500,
+        unlocked: false,
+        category: 'score'
+    });
+    
+    // Combo achievements
+    achievements.push({
+        id: 'combo_master',
+        name: 'Combo Master',
+        description: 'Unlock 10 achievements in one session',
+        requiredCombo: 10,
+        unlocked: false,
+        category: 'combo'
+    });
+    
+    achievements.push({
+        id: 'achievement_hunter',
+        name: 'Achievement Hunter',
+        description: 'Unlock 25 achievements total',
+        requiredTotalAchievements: 25,
+        unlocked: false,
+        category: 'combo'
+    });
+    
+    achievements.push({
+        id: 'completionist',
+        name: 'Completionist',
+        description: 'Unlock 50 achievements total',
+        requiredTotalAchievements: 50,
+        unlocked: false,
+        category: 'combo'
+    });
+    
+    // Special achievements
+    achievements.push({
+        id: 'early_bird',
+        name: 'Early Bird',
+        description: 'Throw 500m in your first 5 throws',
+        requiredDistance: 500,
+        requiredEarlyThrows: 5,
+        unlocked: false,
+        category: 'special'
+    });
+    
+    achievements.push({
+        id: 'night_owl',
+        name: 'Night Owl',
+        description: 'Play 100 throws in one session',
+        requiredSessionThrows: 100,
+        unlocked: false,
+        category: 'special'
+    });
+    
+    achievements.push({
+        id: 'dedicated',
+        name: 'Dedicated',
+        description: 'Play 1000 throws total',
+        requiredDedicatedThrows: 1000,
+        unlocked: false,
+        category: 'special'
+    });
+    
+    return achievements;
+}
+
+const achievements = generateAchievements();
+let totalThrows = 0;
+let currentStreak = 0;
+let lastThrowPower = 0;
+
+/**
+ * Check and unlock achievements based on throw results
+ */
+function checkAchievements(distance, time, windSpeed, power) {
+    let newUnlocks = 0;
+    totalThrows++;
+    
+    // Update streak
+    if (distance >= 100) {
+        currentStreak++;
+    } else {
+        currentStreak = 0;
+    }
+    
+    lastThrowPower = power;
+    
+    achievements.forEach(achievement => {
+        if (achievement.unlocked) return;
+        
+        let unlocked = false;
+        
+        switch(achievement.category) {
+            case 'distance':
+                unlocked = distance >= achievement.requiredDistance;
+                break;
+            case 'throws':
+                unlocked = totalThrows >= achievement.requiredThrows;
+                break;
+            case 'wind':
+                if (achievement.requiredWind) {
+                    unlocked = distance >= achievement.requiredDistance && (windSpeed * 100) >= achievement.requiredWind;
+                } else if (achievement.requiredLowWind) {
+                    unlocked = distance >= achievement.requiredDistance && (windSpeed * 100) < achievement.requiredLowWind;
+                }
+                break;
+            case 'time':
+                unlocked = distance >= achievement.requiredDistance && time <= achievement.maxTime;
+                break;
+            case 'consistency':
+                unlocked = distance >= achievement.requiredDistance && currentStreak >= achievement.requiredStreak;
+                break;
+            case 'power':
+                unlocked = distance >= achievement.requiredDistance && power >= achievement.requiredPower;
+                break;
+            case 'milestone':
+                unlocked = distance >= achievement.requiredDistance;
+                break;
+            case 'extreme':
+                unlocked = distance >= achievement.requiredDistance;
+                break;
+            case 'score':
+                unlocked = achievementPoints >= achievement.requiredPoints;
+                break;
+            case 'combo':
+                if (achievement.requiredTotalAchievements) {
+                    unlocked = unlockedAchievements.length >= achievement.requiredTotalAchievements;
+                }
+                break;
+            case 'special':
+                if (achievement.requiredEarlyThrows) {
+                    unlocked = distance >= achievement.requiredDistance && totalThrows <= achievement.requiredEarlyThrows;
+                } else if (achievement.requiredSessionThrows) {
+                    unlocked = totalThrows >= achievement.requiredSessionThrows;
+                } else if (achievement.requiredDedicatedThrows) {
+                    unlocked = totalThrows >= achievement.requiredDedicatedThrows;
+                }
+                break;
+        }
+        
+        if (unlocked && !unlockedAchievements.includes(achievement.id)) {
+            achievement.unlocked = true;
+            unlockedAchievements.push(achievement.id);
+            achievementPoints++;
+            newUnlocks++;
+        }
+    });
+    
+    if (newUnlocks > 0) {
+        localStorage.setItem('achievementPoints', achievementPoints.toString());
+        localStorage.setItem('unlockedAchievements', JSON.stringify(unlockedAchievements));
+        localStorage.setItem('totalThrows', totalThrows.toString());
+        achievementPointsEl.textContent = achievementPoints;
+    }
+}
+
+/**
+ * Show achievements modal
+ */
+function showAchievements() {
+    achievementsModal.classList.remove('hidden');
+    renderAchievements();
+}
+
+/**
+ * Hide achievements modal
+ */
+function hideAchievements() {
+    achievementsModal.classList.add('hidden');
+}
+
+/**
+ * Render achievements list
+ */
+function renderAchievements() {
+    achievementsList.innerHTML = '';
+    
+    const unlocked = achievements.filter(a => a.unlocked).length;
+    unlockedCountEl.textContent = unlocked;
+    totalAchievementsEl.textContent = achievements.length;
+    
+    // Sort by category and unlocked status
+    const sortedAchievements = [...achievements].sort((a, b) => {
+        if (a.unlocked !== b.unlocked) return b.unlocked - a.unlocked;
+        return a.category.localeCompare(b.category);
+    });
+    
+    sortedAchievements.forEach(achievement => {
+        const div = document.createElement('div');
+        div.className = `achievement-item ${achievement.unlocked ? 'unlocked' : 'locked'}`;
+        
+        const icon = achievement.unlocked ? '🏆' : '🔒';
+        const categoryLabel = achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1);
+        
+        div.innerHTML = `
+            <div class="achievement-icon">${icon}</div>
+            <div class="achievement-info">
+                <div class="achievement-name">${achievement.name}</div>
+                <div class="achievement-description">${achievement.description}</div>
+                <div class="achievement-category">${categoryLabel}</div>
+            </div>
+            <div class="achievement-status">${achievement.unlocked ? 'Unlocked' : 'Locked'}</div>
+        `;
+        
+        achievementsList.appendChild(div);
+    });
+}
+
+/**
  * Check and update scores in localStorage
  */
-function checkScore(distance) {
+function checkScore(distance, time, windSpeed, power) {
     const highestScore = parseInt(localStorage.getItem('highestScore') || '0');
     const lastScore = parseInt(localStorage.getItem('lastScore') || '0');
 
@@ -910,6 +1620,9 @@ function checkScore(distance) {
     if (distance > highestScore) {
         localStorage.setItem('highestScore', distance.toString());
     }
+    
+    // Check achievements
+    checkAchievements(distance, time, windSpeed, power);
 }
 
 /**
@@ -951,9 +1664,12 @@ function returnToMenu() {
     // Reload scores
     const highestScore = localStorage.getItem('highestScore') || '0';
     const lastScore = localStorage.getItem('lastScore') || '0';
+    achievementPoints = parseInt(localStorage.getItem('achievementPoints') || '0');
+    unlockedAchievements = JSON.parse(localStorage.getItem('unlockedAchievements') || '[]');
 
     highestScoreEl.textContent = highestScore;
     lastScoreEl.textContent = lastScore;
+    achievementPointsEl.textContent = achievementPoints;
 
     gameStarting = false;
     playButton.disabled = false;
