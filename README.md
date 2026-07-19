@@ -129,7 +129,6 @@ Distance is calculated as: `Math.floor(Math.abs(mudPie.x - mudPie.startX) / 10)`
 - [ ] Multiple difficulty levels
 - [ ] Obstacles and targets
 - [ ] Leaderboard system
-- [ ] Sound settings
 - [ ] Different mud pie types
 - [ ] Power-ups
 - [ ] Multiplayer mode
